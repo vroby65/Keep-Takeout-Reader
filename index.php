@@ -61,7 +61,7 @@ rsort($files);
 <body>
 <div class="filter-wrapper">
     <div class="filter-container">
-        <input type="text" id="filter" onkeyup="filterCards()" placeholder="Inserisci la pertinenza">
+        <input type="text" id="filter" onkeyup="filterCards()" placeholder="search">
     </div>
 </div>
 
