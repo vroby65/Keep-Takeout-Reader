@@ -1,5 +1,5 @@
-# mykeep
-# Google Keep Takeout Viewer
+
+# Keep Takeout Viewer
 
 This program allows you to view your Google Keep notes archive exported through Google Takeout as if you were using the online program. Please note that this program does not provide authentication and should only be used in a closed internet environment for security reasons.
 
