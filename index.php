@@ -5,32 +5,26 @@ rsort($files);
 ?>
 <html>
 <head>
-<title>Keep Takeout Reader </title>
+<title>my Keep</title>
 <style>
-	.note {
+    .note {
         border-radius: 10px;
-        overflow: hidden;		
-	}
-    .card-container {
-        display: flex;
-        flex-wrap: wrap;
+        overflow: hidden;
     }
 
     .card {
-        width: 33%;
-        padding: 10px;
+        width: 33.33%;
+        padding: 5px;
         box-sizing: border-box;
-    }
-
-    .card-content {
-        border-radius: 10px;
-        overflow: hidden;
+        margin-bottom: 0px;
+        vertical-align: top;
+        font-size: 16px;
     }
 
     .filter-container {
         display: flex;
         justify-content: center;
-        margin-bottom: 10px;
+        margin-bottom: 0px;
     }
 
     .filter-wrapper {
@@ -49,10 +43,6 @@ rsort($files);
         font-size: 18px;
     }
 
-    #card-container {
-        margin-top: 60px;
-    }
-
     .archived-note {
         display: none;
     }
@@ -61,7 +51,7 @@ rsort($files);
 <body>
 <div class="filter-wrapper">
     <div class="filter-container">
-        <input type="text" id="filter" onkeyup="filterCards()" placeholder="search">
+        <input type="text" id="filter" onkeyup="filterCards()" placeholder="Enter relevance">
     </div>
 </div>
 
@@ -72,16 +62,62 @@ rsort($files);
             $content = file_get_contents($directory . '/' . $file);
             $isArchived = strpos($content, 'Nota archiviata') !== false;
             if ($isArchived) {
-                echo '<div class="card archived-note"><div class="card-content">' . $content . '</div></div>';
+                echo '<div class="card archived-note"><div class="card-content note">' . $content . '</div></div>';
             } else {
-                echo '<div class="card"><div class="card-content">' . $content . '</div></div>';
+                echo '<div class="card" id="' . $file . '"><div class="card-content note">' . $content . '</div></div>';
             }
         }
     }
     ?>
 </div>
 </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/packery/2.1.2/packery.pkgd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/draggabilly/2.3.0/draggabilly.pkgd.min.js"></script>
 <script>
+    var cardContainer = document.getElementById('card-container');
+    var packery = new Packery(cardContainer, {
+        itemSelector: '.card',
+        gutter: 0
+    });
+
+    var draggableElements = document.getElementsByClassName('card');
+    for (var i = 0; i < draggableElements.length; i++) {
+        var draggie = new Draggabilly(draggableElements[i]);
+        packery.bindDraggabillyEvents(draggie);
+    }
+
+    // Save card positions
+    function saveLayout() {
+        var cardPositions = Array.from(cardContainer.children).reduce(function(acc, card) {
+            var rect = card.getBoundingClientRect();
+            acc[card.id] = {
+                left: rect.left,
+                top: rect.top
+            };
+            return acc;
+        }, {});
+        localStorage.setItem('cardPositions', JSON.stringify(cardPositions));
+    }
+
+    // Restore card positions
+    function restoreLayout() {
+        var cardPositions = localStorage.getItem('cardPositions');
+        if (cardPositions) {
+            cardPositions = JSON.parse(cardPositions);
+            Object.keys(cardPositions).forEach(function(cardId) {
+                var card = document.getElementById(cardId);
+                if (card) {
+                    var position = cardPositions[cardId];
+                    card.style.left = position.left + 'px';
+                    card.style.top = position.top + 'px';
+                }
+            });
+        }
+    }
+
+    // Save layout on drag or reposition
+    packery.on('dragItemPositioned', saveLayout);
+
     function filterCards() {
         var filterValue = document.getElementById("filter").value.toLowerCase();
         var cards = document.getElementsByClassName("card");
@@ -91,11 +127,16 @@ rsort($files);
             var isArchived = cards[i].classList.contains('archived-note');
 
             if (cardText.includes(filterValue) && (!isArchived || filterValue !== '')) {
-                cards[i].style.display = "block";
+                cards[i].style.display = "inline-block";
             } else {
                 cards[i].style.display = "none";
             }
         }
+
+        packery.layout();
     }
+
+    // Restore layout on page load
+    restoreLayout();
 </script>
 </html>
